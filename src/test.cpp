@@ -3,17 +3,22 @@
 
 int main(){
 
-const int len = 200;
+const int len = 8;
 
-banded_general_penta mat(len);
+//banded_general_penta mat(len);
+penta_repeating mat(len, 2, 2);
 
 mat.fill_from_elemBanded(elementary_matrices::SpringBanded);
 mat.add_identity_factor(0.1);
+std::cout<<"Matrix is :"<<std::endl;
 mat.print();
+std::cout<<"Matrix in full is :"<<std::endl;
+mat.pretty_print();
 
-reference_penta_thomas solver;
+//reference_penta_thomas solver;
+repeating_penta_thomas solver;
 solver.update_array(mat);
-
+std::cout<<"Verifying LU decomposition"<<std::endl;
 solver.verify_stored_array(mat);
 
 std::vector<double> rhs, sol;
@@ -21,7 +26,7 @@ rhs.resize(len);
 for(int i=1; i<len; i++){
     rhs[i] = rhs[i-1] + 0.1;
 }
-long n_iter = 100000;
+long n_iter = 1;
 for(int t = 0; t<n_iter;t++){
     mat.clear();
     mat.fill_from_elemBanded(elementary_matrices::SpringBanded);
