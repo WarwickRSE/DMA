@@ -5,8 +5,8 @@ int main(){
 
 const int len = 8;
 
-//banded_general_penta mat(len);
-penta_repeating mat(len, 2, 2);
+banded_general_penta mat(len);
+//penta_repeating mat(len, 2, 2);
 
 mat.fill_from_elemBanded(elementary_matrices::SpringBanded);
 mat.add_identity_factor(0.1);
@@ -16,7 +16,7 @@ std::cout<<"Matrix in full is :"<<std::endl;
 mat.pretty_print();
 
 //reference_penta_thomas solver;
-repeating_penta_thomas solver;
+penta_thomas_solver solver;
 solver.update_array(mat);
 std::cout<<"Verifying LU decomposition"<<std::endl;
 solver.verify_stored_array(mat);

@@ -19,9 +19,10 @@ namespace elementary_matrices{
 template <int bandw> 
 class banded_general{
 
+  std::vector< std::vector<double> > values;
+
   public:
   const int len;
-  std::vector< std::vector<double> > values;
 
   banded_general(const int len_in):len(len_in){
     // Checks
@@ -81,6 +82,14 @@ class banded_general{
         }
         std::cout<<'\n';
     }
+  }
+  void pretty_print(){print();}
+
+  double get(int i, int j) const{
+    return values[i][j];
+  }
+  void set(int i, int j, double val){
+    values[i][j] = val;
   }
 
 };
