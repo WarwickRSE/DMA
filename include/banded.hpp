@@ -134,6 +134,16 @@ class banded_repeating{
     }
   }
 
+  void change_len(int new_len){
+  #ifdef DEBUG
+    assert(new_len > hdr+ftr+1); // Must have at least one repeating row
+    assert(new_len > bandw); // Doesn't make any sense otherwise...
+  #endif
+
+    len = new_len;
+    reps = len - hdr - ftr;
+  }
+
   void fill_from_otherstuff(){ //TODO
   };
 

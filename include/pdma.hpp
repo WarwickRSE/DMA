@@ -49,9 +49,48 @@ class penta_thomas_solver{
 
   }
 
+  void nudge_array_len(penta_repeating const &new_arr){
+    // MUST pass the same array as the one originally set, EXCEPT the length is changed
+    // Short-cuts certain logic for faster update on resize, esp growing/shrinking by one
+    // Only recalculates the last ftr + delta_len rows (for growth) or ftr + 1 for shrinkage
+
+    int old_len = len;
+    len = new_arr.len;
+    int delta_len = len - old_len;
+    bool grow = delta_len > 0;
+    int start_of_recalc = len - new_arr.ftr;
+    if(grow){
+        start_of_recalc -= delta_len;
+    }else{
+        start_of_recalc -= 1;
+    }
+
+    for(int i = 0; i < 5; i++){
+        lu_values[i].resize(len);
+    }
+
+    for(int i = start_of_recalc; i < len; i++){
+        lu_values[z][i] = ( new_arr.get(d,i-1) - (new_arr.get(e, i-2) * lu_values[y][i-2]/lu_values[x][i-2]))/lu_values[x][i-1];
+        lu_values[y][i] = new_arr.get(b, i) -  lu_values[z][i]* new_arr.get(c, i-1);
+        lu_values[x][i] = new_arr.get(a, i) - (lu_values[y][i-1] * lu_values[z][i]) - (new_arr.get(e, i-2) * new_arr.get(c, i-2)/lu_values[x][i-2]);
+    }
+
+    // Renumber for simpler maths
+    for(int i = start_of_recalc; i < len-2; i++){
+        lu_values[c_st][i] = new_arr.get(c, i);
+        lu_values[e_st][i+2] = new_arr.get(e, i);
+    }
+
+  }
+
 template < typename T >
 bool verify_stored_array(T expected){
     banded_general_penta L(len), U(len), res(len);
+
+    if(len != expected.len){
+        std::cout<<"Canot verify, length incorrect\n";
+        return true;
+    }
 
     // Construct them
     for(int i = 0; i< len; i++){
