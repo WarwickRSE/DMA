@@ -135,14 +135,18 @@ bool verify_stored_array(T expected){
     }
 
     bool err = false;
+    double max_err = 0.0;
     for(int i = 0; i < 5; i++){
         int l = res.len - std::abs(i-2);
         for(int j = 0; j< l; j++){
-            if(std::abs(res.get(i, j) - expected.get(i, j)) > zero_thresh) err = true;
+            double diff = std::abs((res.get(i, j) - expected.get(i, j))/expected.get(i, j));
+            if(diff > max_err) max_err = diff;
+            if(diff > zero_thresh)err = true;
         }
     }
-    assert(!err);
     if(err) res.print();
+    std::cout<<"Max error: "<<max_err<<std::endl;
+    assert(!err);
     return err;
 }
 
