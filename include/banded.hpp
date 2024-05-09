@@ -73,6 +73,31 @@ class banded_general{
     }
   }
 
+  void multiply_all(double factor){
+    for(int i = 0; i < bandw; i++){
+        for(double & value : values[i]){
+            value *= factor;
+        }
+    }
+  }
+
+  bool set_identity_row(int row){
+    // Allow for any row
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    for(int i = 0; i < bandw; i++){
+        int off = centr - i;
+        if(off == 0){
+          values[i][row] = 1.0;
+        }
+        else if(off > 0 && row-off >= 0){
+            values[i][row-off] = 0.0;
+        }else if(off < 0){
+            values[i][row] = 0.0;
+        }
+    }
+    return true;
+  }
+
   void print(){
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i =0; i < bandw; i++){
@@ -84,6 +109,24 @@ class banded_general{
     }
   }
   void pretty_print(){print();}
+
+  void expanded_print(bool full = false){
+    // Print as full matrix
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    for(int i = 0; i < len; i++){
+        for(int j = 0; j < len; j++){
+            int col = j - i + centr;
+            int off = centr - col;
+            if( col >= centr) off = 0;
+            if(col > -1 && col < bandw && i >= off){
+               std::cout<<get(col, i-off)<<"\t";
+            }else{
+                std::cout<<"0\t";
+            }
+       }
+        std::cout<<'\n';
+    }
+  }
 
   double get(int i, int j) const{
     return values[i][j];
@@ -154,6 +197,7 @@ class banded_repeating{
 
     const int elem_sz = std::sqrt(elem.size()); // Size of elementary
     const int elem_bw = elem_sz * 2 - 1;
+    assert(elem_sz-1 <= hdr);
 
     const int stored_len = values[centr].size();
 
@@ -167,6 +211,13 @@ class banded_repeating{
       }
     }
   }
+  void multiply_all(double factor){
+    for(int i = 0; i < bandw; i++){
+        for(double & value : values[i]){
+            value *= factor;
+        }
+    }
+  }
   void add_identity_factor(double factor){
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     const int stored_len = values[centr].size();
@@ -174,6 +225,29 @@ class banded_repeating{
     for(int i = 0; i < stored_len; i++){
         values[centr][i] += factor;
     }
+  }
+
+  bool set_row(int row, std::vector<double> vals){
+    if(row < 0 || row >= hdr) return false;
+    values[row] = vals;
+    return true;
+  }
+  bool set_identity_row(int row){
+    // Only allowed to manipulate initial rows
+    if(row < 0 || row >= hdr) return false;
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    for(int i = 0; i < bandw; i++){
+        int off = centr - i;
+        if(off == 0){
+          values[i][row] = 1.0;
+        }
+        else if(off > 0 && row-off >= 0){
+            values[i][row-off] = 0.0;
+        }else if(off < 0){
+            values[i][row] = 0.0;
+        }
+    }
+    return true;
   }
 
   void print(){
@@ -208,6 +282,27 @@ class banded_repeating{
             std::cout<<get(i, j)<<"\t";
         }
         std::cout<<'\n';
+    }
+  }
+  void expanded_print(bool full = false){
+    // Print as full matrix
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    for(int i = 0; i < len; i++){
+      if(full || i < hdr + 1 || i > len - ftr - 3){
+        for(int j = 0; j < len; j++){
+            int col = j - i + centr;
+            int off = centr - col;
+            if( col >= centr) off = 0;
+            if(col > -1 && col < bandw && i >= off){
+               std::cout<<get(col, i-off)<<"\t";
+            }else{
+                std::cout<<"0\t";
+            }
+       }
+        std::cout<<'\n';
+      }else if(i == hdr + 1){
+            std::cout<<"........\n";
+      }
     }
   }
 
