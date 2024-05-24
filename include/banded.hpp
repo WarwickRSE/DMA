@@ -17,6 +17,12 @@ namespace elementary_matrices{
     const std::vector<double> SpringBanded{-1, 2, -1, 2, -1,  2, -4, 2,  -1};
 };
 
+  // Tiny helper struct for banded indexing
+  struct index_helper{
+    int i, j;
+    bool valid;
+  };
+
 class general_mat{
   // Convenience class for use in multiplications
   // Is neither performant nor generally useful!
@@ -212,10 +218,6 @@ class banded_general{
     values[i][j] = val;
   }
 
-  struct index_helper{
-    int i, j;
-    bool valid;
-  };
   inline index_helper get_from_real(int i, int j)const{
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     index_helper inds;
@@ -397,12 +399,8 @@ class banded_repeating{
   }
 
   void print(){
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
-    const int stored_len = values[centr].size();
-
     for(int i =0; i < bandw; i++){
-        int l = stored_len - std::abs(i-centr);
-        for(int j = 0; j < l; j++ ){
+        for(int j = 0; j < values[i].size(); j++ ){
             std::cout<< values[i][j]<<"\t";
             if(j == hdr) std::cout<<":\t";
         }
@@ -410,16 +408,45 @@ class banded_repeating{
     }
   }
 
+  inline int get_second(int j)const{
+    // Get the index for stored values corresponding to value j in actual diagonal
+    return (j < hdr ? j :(j > len-ftr-1 ? (j-reps+1) : hdr));
+    /* Inline replication of:
+     if(j < hdr){
+        j;
+    }else if(j > len - ftr - 1){
+        j - reps+1; // End bit
+    }else{
+        hdr; // Repeating bit - note hdr is length of hdr section, so is correct index
+    */
+  }
+
   double get(int i, int j) const{
+    // Return the value at position j on diagonal i. j can run from 0 to len - l where l is the number of the diagonal
 #ifdef DEBUG
     if(i >= bandw || j >= len) throw std::out_of_range("Out of range");
 #endif
-    if(j < hdr){
-        return values[i][j];
-    }else if(j > len - ftr - 1){
-        return values[i][j - reps+1]; // End bit
+    return values[i][get_second(j)];
+  }
+
+  inline index_helper index_from_real(int i, int j)const{
+    // Indices suitable for passing to get - have to compress j if indexing directly!
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    index_helper inds;
+    inds.i = j - i + centr;
+    int off = i-j;
+    inds.j = (off < 0 ? i : i-off);
+    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0);
+    return inds;
+  }
+
+  double get_real(int i, int j)const{
+    // Get value at _real_ indices i, j
+    index_helper inds = index_from_real(i, j);
+    if(inds.valid){
+      return get(inds.i, inds.j);
     }else{
-        return values[i][hdr]; // Repeating bit - note hdr is length of hdr section, so is correct index
+      return 0.0;
     }
   }
 
@@ -440,15 +467,8 @@ class banded_repeating{
     for(int i = 0; i < len; i++){
       if(full || i < hdr + 1 || i > len - ftr - 3){
         for(int j = 0; j < len; j++){
-            int col = j - i + centr;
-            int off = centr - col;
-            if( col >= centr) off = 0;
-            if(col > -1 && col < bandw && i >= off){
-               std::cout<<get(col, i-off)<<"\t";
-            }else{
-                std::cout<<"0\t";
-            }
-       }
+            std::cout<<get_real(i, j)<<"\t";
+        }
         std::cout<<'\n';
       }else if(i == hdr + 1){
             std::cout<<"........\n";
@@ -456,21 +476,25 @@ class banded_repeating{
     }
   }
 
-
-  banded_general<bandw> to_full(int len){
+  banded_general<bandw> to_full(){
     auto tmp = banded_general<bandw>(len);
     for(int i = 0; i < bandw; i++){
         for(int j = 0; j < len; j++){
-            if(j < hdr){
-                tmp.values[i][j] = values[i][j];
-            }else if(j >= len - ftr){
-                tmp.values[i][j] = values[i][j - reps]; // End bit
-            }else{
-                tmp.values[i][j] = values[i][hdr];
-            }
+          tmp.set(i, j, get(i, j));
         }
     }
-    
+    return tmp;
+  }
+
+  general_mat to_general(){
+    // Expand into a normal matrix form
+    auto tmp = general_mat(len);
+    for(int i = 0; i < len; i++){
+        for(int j = 0; j < len; j++){
+          tmp.set(i, j, get_real(i, j));
+        }
+    }
+    return tmp;
   }
 
   bool operator==(const banded_general<bandw> & other)const{
@@ -528,6 +552,23 @@ general_mat matmul(const general_mat & L, const general_mat & U){
 template <int bandw>
 general_mat matmul(const banded_general<bandw> & L, const banded_general<bandw> & U){
   // Multiply two banded matrices. Note that in general the result is NOT banded, so only a general matrix is returned
+  assert(L.len == U.len);
+  general_mat result(L.len);
+  for(int i = 0; i < L.len; i++){
+    for(int j = 0; j < L.len; j++){
+      double tmp = 0.0;
+      for(int k = 0; k < L.len; k++){
+        tmp += L.get_real(i, k)*U.get_real(k, j);
+      }
+      result.set(i, j, tmp);
+    }
+  }
+  return result;
+}
+
+template <int bandw>
+general_mat matmul(const banded_repeating<bandw> & L, const banded_repeating<bandw> & U){
+  // Multiply two repeating matrices. Note that in general the result is NOT banded, so only a general matrix is returned
   assert(L.len == U.len);
   general_mat result(L.len);
   for(int i = 0; i < L.len; i++){
