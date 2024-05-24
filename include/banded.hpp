@@ -18,22 +18,6 @@ namespace elementary_matrices{
     const std::vector<double> SpringBanded{-1, 2, -1, 2, -1,  2, -4, 2,  -1};
 };
 
-  // Tiny helper struct for banded indexing
-  struct index_helper{
-    int i, j;
-    bool valid;
-  };
-  // Convert from real indices to diagonal ones
-  template <int bandw>
-  inline index_helper index_from_real(int len, int i, int j){
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
-    index_helper inds;
-    inds.i = j - i + centr;
-    inds.j = (i < j ? i : j);
-    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0 && inds.j < len- std::abs(inds.i-centr));
-    return inds;
-  }
-
 class general_mat{
   // Convenience class for use in multiplications
   // Is neither performant nor generally useful!
@@ -193,11 +177,12 @@ class banded_general{
     }
   }
 
-  bool set_identity_row(int row){
-    // Allow for any row
-    if constexpr (repeating){
-      if(row < 0 || row >= hdr) return false;
-    }
+  void set_identity_row(int row){
+    // For repeating, only the top rows; for non repeating any row
+#ifdef DEBUG
+    assert(row >= 0 || row < len);
+    assert(!repeating || row < hdr);
+#endif
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i = 0; i < bandw; i++){
         int off = centr - i;
@@ -210,7 +195,6 @@ class banded_general{
             values[i][row] = 0.0;
         }
     }
-    return true;
   }
 
   void print()const{
@@ -256,7 +240,7 @@ class banded_general{
   double get(int i, int j) const{
     // Get value in diagonal i, position j. j can run from 0 to len - l where l is the number of the diagonal
 #ifdef DEBUG
-    if(i >= bandw || j >= len) throw std::out_of_range("Out of range banded get");
+    if(i >= bandw || j >= len || i < 0 || j < 0) throw std::out_of_range("Out of range banded get");
 #endif
     if constexpr(repeating){
       return values[i][(j < hdr ? j :(j > len-ftr-1 ? (j-reps()+1) : hdr))];
@@ -273,9 +257,24 @@ class banded_general{
         hdr; // Repeating bit - note hdr is length of hdr section, so is correct index
     */
 
+  // Tiny helper struct for banded indexing
+  struct index_helper{
+    int i, j;
+    bool valid;
+  };
+  // Convert from real indices to diagonal ones
+  inline index_helper index_from_real(int i, int j)const{
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    index_helper inds;
+    inds.i = j - i + centr;
+    inds.j = (i < j ? i : j);
+    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0 && inds.j < len- std::abs(inds.i-centr));
+    return inds;
+  }
+
   double get_real(int i, int j)const{
     // Get value at _real_ indices i, j
-    index_helper inds = index_from_real<bandw>(len, i, j);
+    index_helper inds = index_from_real(i, j);
     if(inds.valid){
       return get(inds.i, inds.j);
     }else{
@@ -290,7 +289,7 @@ class banded_general{
     }
     // Set value in diagonal i, position j
 #ifdef DEBUG
-    if(i >= bandw || j >= len) throw std::out_of_range("Out of range banded set");
+    if(i >= bandw || j >= len || i < 0 || j < 0) throw std::out_of_range("Out of range banded set");
  #endif
     values[i][j] = val;
   }
