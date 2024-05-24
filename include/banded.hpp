@@ -72,7 +72,7 @@ class general_mat{
       return bw; // By definition is either 0 or an odd number
     }
 
-    void print(){
+    void print()const{
       for(int i = 0; i < len; i++){
           for(int j = 0; j < len; j++){
               std::cout<<values[i][j]<<"\t";
@@ -173,7 +173,7 @@ class banded_general{
     return true;
   }
 
-  void print(){
+  void print()const{
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i =0; i < bandw; i++){
         int l = len - std::abs(i-centr);
@@ -183,9 +183,9 @@ class banded_general{
         std::cout<<'\n';
     }
   }
-  void pretty_print(){print();}
+  void pretty_print()const{print();}
 
-  void expanded_print(bool full = false){
+  void expanded_print(bool full = false)const{
     // Print as full matrix
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i = 0; i < len; i++){
@@ -249,7 +249,7 @@ class banded_general{
     }
   }
 
-  general_mat to_general(){
+  general_mat to_general()const{
     // Expand into a normal matrix form
     auto tmp = general_mat(len);
     for(int i = 0; i < len; i++){
@@ -296,9 +296,10 @@ class banded_repeating{
 
   public:
   int len;
-  int reps;
   const int hdr; // Number of initial rows
   const int ftr; // Number of final rows
+
+  inline int reps()const{return len - hdr - ftr;}
 
   banded_repeating(const int len_in, const int hdr_in, const int ftr_in):len(len_in), hdr(hdr_in), ftr(ftr_in){
     // Checks
@@ -310,7 +311,6 @@ class banded_repeating{
 
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     values.resize(bandw);
-    reps = len - hdr - ftr;
     int stored_len = hdr + ftr + 1; // Length required to store elements
     for(int i = 0; i < bandw; ++i){
         int l = stored_len - std::abs(i-centr);
@@ -324,15 +324,14 @@ class banded_repeating{
         }
     }
   }
-
   void change_len(int new_len){
-  #ifdef DEBUG
+
+#ifdef DEBUG
     assert(new_len > hdr+ftr+1); // Must have at least one repeating row
     assert(new_len > bandw); // Doesn't make any sense otherwise...
-  #endif
+#endif
 
     len = new_len;
-    reps = len - hdr - ftr;
   }
 
   void fill_from_otherstuff(){ //TODO
@@ -398,7 +397,7 @@ class banded_repeating{
     return true;
   }
 
-  void print(){
+  void print()const{
     for(int i =0; i < bandw; i++){
         for(int j = 0; j < values[i].size(); j++ ){
             std::cout<< values[i][j]<<"\t";
@@ -410,7 +409,7 @@ class banded_repeating{
 
   inline int get_second(int j)const{
     // Get the index for stored values corresponding to value j in actual diagonal
-    return (j < hdr ? j :(j > len-ftr-1 ? (j-reps+1) : hdr));
+    return (j < hdr ? j :(j > len-ftr-1 ? (j-reps()+1) : hdr));
     /* Inline replication of:
      if(j < hdr){
         j;
@@ -450,7 +449,7 @@ class banded_repeating{
     }
   }
 
-  void pretty_print(){
+  void pretty_print()const{
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i = 0; i < bandw; i++){
       int l = len - std::abs(i-centr);
@@ -460,7 +459,7 @@ class banded_repeating{
         std::cout<<'\n';
     }
   }
-  void expanded_print(bool full = false){
+  void expanded_print(bool full = false)const{
     // Print as full matrix
     // full flag means print all the repeating rows too
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
@@ -476,7 +475,7 @@ class banded_repeating{
     }
   }
 
-  banded_general<bandw> to_full(){
+  banded_general<bandw> to_full()const{
     auto tmp = banded_general<bandw>(len);
     for(int i = 0; i < bandw; i++){
         for(int j = 0; j < len; j++){
@@ -486,7 +485,7 @@ class banded_repeating{
     return tmp;
   }
 
-  general_mat to_general(){
+  general_mat to_general()const{
     // Expand into a normal matrix form
     auto tmp = general_mat(len);
     for(int i = 0; i < len; i++){
@@ -497,18 +496,21 @@ class banded_repeating{
     return tmp;
   }
 
-  bool operator==(const banded_general<bandw> & other)const{
+  friend bool operator==(const banded_repeating & lhs,  const banded_general<bandw> & rhs){
     // Check for equality without repeats
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
-    if(len != other.len) return false;
+    if(lhs.len != rhs.len) return false;
     for(int i = 0; i < bandw; i++){
-      int l = len - std::abs(i-centr);
+      int l = lhs.len - std::abs(i-centr);
       for(int j = 0; j < l; j++ ){
         // Have to check every value in other across repeating section
-        if(get(i, j) != other.get(i, j)) return false;
+        if(lhs.get(i, j) != rhs.get(i, j)) return false;
       }
     }
     return true;
+  }
+  friend bool operator==(const banded_general<bandw> & lhs, const banded_repeating & rhs){
+    return rhs == lhs;
   }
   friend bool operator==(const general_mat & gen, const banded_repeating & banded){
     if(gen.len != banded.len) return false;
