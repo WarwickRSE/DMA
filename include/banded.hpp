@@ -244,7 +244,7 @@ class banded_general{
       set(inds.i, inds.j, val);
     }else{
 #ifdef DEBUG
-      assert(false, "Attempt to set non-existent element");
+      throw std::out_of_range("Attempt to set non-existent element");
 #endif
     }
   }
@@ -325,12 +325,10 @@ class banded_repeating{
     }
   }
   void change_len(int new_len){
-
 #ifdef DEBUG
     assert(new_len > hdr+ftr+1); // Must have at least one repeating row
     assert(new_len > bandw); // Doesn't make any sense otherwise...
 #endif
-
     len = new_len;
   }
 
