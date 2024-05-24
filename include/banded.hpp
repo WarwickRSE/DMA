@@ -22,6 +22,16 @@ namespace elementary_matrices{
     int i, j;
     bool valid;
   };
+  // Convert from real indices to diagonal ones
+  template <int bandw>
+  inline index_helper index_from_real(int len, int i, int j){
+    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    index_helper inds;
+    inds.i = j - i + centr;
+    inds.j = (i < j ? i : j);
+    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0 && inds.j < len- std::abs(inds.i-centr));
+    return inds;
+  }
 
 class general_mat{
   // Convenience class for use in multiplications
@@ -176,8 +186,7 @@ class banded_general{
   void print()const{
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i =0; i < bandw; i++){
-        int l = len - std::abs(i-centr);
-        for(int j = 0; j < l; j++ ){
+        for(int j = 0; j < values[i].size(); j++ ){
             std::cout<< values[i][j]<<"\t";
         }
         std::cout<<'\n';
@@ -186,19 +195,11 @@ class banded_general{
   void pretty_print()const{print();}
 
   void expanded_print(bool full = false)const{
-    // Print as full matrix
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+    // Print as full matrix. Sig to match repeating one
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
-            int col = j - i + centr;
-            int off = centr - col;
-            if( col >= centr) off = 0;
-            if(col > -1 && col < bandw && i >= off){
-               std::cout<<get(col, i-off)<<"\t";
-            }else{
-                std::cout<<"0\t";
-            }
-       }
+          std::cout<<get_real(i, j)<<"\t";
+        }
         std::cout<<'\n';
     }
   }
@@ -218,19 +219,9 @@ class banded_general{
     values[i][j] = val;
   }
 
-  inline index_helper get_from_real(int i, int j)const{
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
-    index_helper inds;
-    inds.i = j - i + centr;
-    int off = i-j;
-    inds.j = (off < 0 ? i : i-off);
-    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0);
-    return inds;
-  }
-
   double get_real(int i, int j)const{
     // Get value at _real_ indices i, j
-    index_helper inds = get_from_real(i, j);
+    index_helper inds = index_from_real<bandw>(len, i, j);
     if(inds.valid){
       return get(inds.i, inds.j);
     }else{
@@ -239,7 +230,7 @@ class banded_general{
   }
   void set_real(int i, int j, double val){
     // Set value at _real_ indices i, j
-    index_helper inds = get_from_real(i, j);
+    index_helper inds = index_from_real<bandw>(len, i, j);
     if(inds.valid){
       set(inds.i, inds.j, val);
     }else{
@@ -426,20 +417,9 @@ class banded_repeating{
     return values[i][get_second(j)];
   }
 
-  inline index_helper index_from_real(int i, int j)const{
-    // Indices suitable for passing to get - have to compress j if indexing directly!
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
-    index_helper inds;
-    inds.i = j - i + centr;
-    int off = i-j;
-    inds.j = (off < 0 ? i : i-off);
-    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0);
-    return inds;
-  }
-
   double get_real(int i, int j)const{
     // Get value at _real_ indices i, j
-    index_helper inds = index_from_real(i, j);
+    index_helper inds = index_from_real<bandw>(len, i, j);
     if(inds.valid){
       return get(inds.i, inds.j);
     }else{
@@ -450,7 +430,7 @@ class banded_repeating{
   void pretty_print()const{
     const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i = 0; i < bandw; i++){
-      int l = len - std::abs(i-centr);
+      int l = len - std::abs(i-centr); // Real diagonal length, not stored
         for(int j = 0; j < l; j++){
             std::cout<<get(i, j)<<"\t";
         }
