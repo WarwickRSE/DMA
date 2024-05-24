@@ -1,5 +1,8 @@
+#ifndef PDMA_HPP
+#define PDMA_HPP
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 
 #include "banded.hpp"
 
@@ -33,7 +36,9 @@ class penta_thomas_solver{
 
     for(int i = 2; i < len; i++){
         lu_values[z][i] = ( new_arr.get(d,i-1) - (new_arr.get(e, i-2) * lu_values[y][i-2]/lu_values[x][i-2]))/lu_values[x][i-1];
-        lu_values[y][i] = new_arr.get(b, i) -  lu_values[z][i]* new_arr.get(c, i-1);
+        if(i < len-1){
+          lu_values[y][i] = new_arr.get(b, i) -  lu_values[z][i]* new_arr.get(c, i-1);
+        }
         lu_values[x][i] = new_arr.get(a, i) - (lu_values[y][i-1] * lu_values[z][i]) - (new_arr.get(e, i-2) * new_arr.get(c, i-2)/lu_values[x][i-2]);
     }
 
@@ -44,15 +49,17 @@ class penta_thomas_solver{
     }
 
 #ifdef DEBUG
-    assert(std::all_of(lu_values[x].begin(), lu_values[x].end(), [](int i){return std::abs(i)<zero_thresh}));
+    // ALL x's must be non-zero
+    assert(std::all_of(lu_values[x].begin(), lu_values[x].end(), [](int i){return std::abs(i)>zero_thresh}));
 #endif
 
   }
 
   void nudge_array_len(penta_repeating const &new_arr){
     // MUST pass the same array as the one originally set, EXCEPT the length is changed
-    // Short-cuts certain logic for faster update on resize, esp growing/shrinking by one
+    // Short-cuts certain logic for faster update on resize, esp growing/shrinking by amount << len
     // Only recalculates the last ftr + delta_len rows (for growth) or ftr + 1 for shrinkage
+    // MAY cause memory re-alocation internally, especially on growing
 
     int old_len = len;
     len = new_arr.len;
@@ -71,7 +78,9 @@ class penta_thomas_solver{
 
     for(int i = start_of_recalc; i < len; i++){
         lu_values[z][i] = ( new_arr.get(d,i-1) - (new_arr.get(e, i-2) * lu_values[y][i-2]/lu_values[x][i-2]))/lu_values[x][i-1];
-        lu_values[y][i] = new_arr.get(b, i) -  lu_values[z][i]* new_arr.get(c, i-1);
+        if(i < len-1){
+          lu_values[y][i] = new_arr.get(b, i) -  lu_values[z][i]* new_arr.get(c, i-1);
+        }
         lu_values[x][i] = new_arr.get(a, i) - (lu_values[y][i-1] * lu_values[z][i]) - (new_arr.get(e, i-2) * new_arr.get(c, i-2)/lu_values[x][i-2]);
     }
 
@@ -105,7 +114,9 @@ bool verify_stored_array(T expected){
 
     for(int i = 0; i< len; i++){
         U.set(2, i, lu_values[x][i]);
-        U.set(3, i, lu_values[y][i]);
+        if(i < len-1){
+          U.set(3, i, lu_values[y][i]);
+        }
         if(i < len-2){
           U.set(4, i, lu_values[c_st][i]);
         }
@@ -182,3 +193,4 @@ std::vector<double> solve(const std::vector<double> rhs){
 }
 
 };
+#endif
