@@ -265,7 +265,7 @@ class banded_general{
     index_helper inds;
     inds.i = j - i + centr;
     inds.j = (i < j ? i : j);
-    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0 && inds.j < len- std::abs(inds.i-centr));
+    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0 && inds.j < len- std::abs(j-i));
     return inds;
   }
 
@@ -394,11 +394,12 @@ template <int bandw, bool repeatinga, bool repeatingb>
 general_mat matmul(const banded_general<bandw, repeatinga> & L, const banded_general<bandw, repeatingb> & U){
   // Multiply two banded matrices. Note that in general the result is NOT banded, so only a general matrix is returned
   assert(L.len == U.len);
+  const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
   general_mat result(L.len);
   for(int i = 0; i < L.len; i++){
     for(int j = 0; j < L.len; j++){
       double tmp = 0.0;
-      for(int k = 0; k < L.len; k++){
+      for(int k = i-centr; k < i+centr+1; k++){
         tmp += L.get_real(i, k)*U.get_real(k, j);
       }
       result.set(i, j, tmp);
