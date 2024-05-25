@@ -50,7 +50,7 @@ class penta_thomas_solver{
 
 #ifdef DEBUG
     // ALL x's must be non-zero
-    assert(std::all_of(lu_values[x].begin(), lu_values[x].end(), [](int i){return std::abs(i)>zero_thresh}));
+    assert(std::all_of(lu_values[x].begin(), lu_values[x].end(), [](double d){return std::abs(d)>zero_thresh;}));
 #endif
 
   }
