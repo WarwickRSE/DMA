@@ -89,6 +89,8 @@ class general_mat{
 template <int bandw, bool repeating=false>
 class banded_general{
 
+  const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+
   typedef typename std::conditional<repeating, int, const int>::type int_c;
   typedef typename std::conditional<repeating, const int, int>::type int_c2;
 
@@ -108,7 +110,6 @@ class banded_general{
     assert(!repeating || len > hdr+ftr+1); // Must have at least one repeating row if repeating
 #endif 
 
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     values.resize(bandw);
     for(int i = 0; i < bandw; ++i){
         int l;
@@ -146,7 +147,6 @@ class banded_general{
 
   void fill_from_elemBanded(const std::vector<double> elem){
     // ADDS the elementary banded array contributions
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     const int elem_sz = std::sqrt(elem.size()); // Size of elementary
     const int elem_bw = elem_sz * 2 - 1;
     assert(!repeating || elem_sz-1 <= hdr);// Else the elementary matrix will not repeat correctly
@@ -163,7 +163,6 @@ class banded_general{
     }
   }
   void add_identity_factor(double factor){
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i = 0; i < len; i++){
         values[centr][i] += factor;
     }
@@ -183,7 +182,6 @@ class banded_general{
     assert(row >= 0 || row < len);
     assert(!repeating || row < hdr);
 #endif
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     for(int i = 0; i < bandw; i++){
         int off = centr - i;
         if(off == 0){
@@ -211,7 +209,6 @@ class banded_general{
     if constexpr(!repeating){
       print();
     }else{
-      const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
       for(int i = 0; i < bandw; i++){
         int l = len - std::abs(i-centr); // Real diagonal length, not stored
           for(int j = 0; j < l; j++){
@@ -240,7 +237,8 @@ class banded_general{
   double get(int i, int j) const{
     // Get value in diagonal i, position j. j can run from 0 to len - l where l is the number of the diagonal
 #ifdef DEBUG
-    if(i >= bandw || j >= len || i < 0 || j < 0) throw std::out_of_range("Out of range banded get");
+    const int l = len - std::abs(i-centr);
+    if(i >= bandw || j >= l || i < 0 || j < 0) throw std::out_of_range("Out of range banded get");
 #endif
     if constexpr(repeating){
       return values[i][(j < hdr ? j :(j > len-ftr-1 ? (j-reps()+1) : hdr))];
@@ -264,7 +262,6 @@ class banded_general{
   };
   // Convert from real indices to diagonal ones
   inline index_helper index_from_real(int i, int j)const{
-    const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
     index_helper inds;
     inds.i = j - i + centr;
     inds.j = (i < j ? i : j);
@@ -289,7 +286,8 @@ class banded_general{
     }
     // Set value in diagonal i, position j
 #ifdef DEBUG
-    if(i >= bandw || j >= len || i < 0 || j < 0) throw std::out_of_range("Out of range banded set");
+    const int l = len - std::abs(i-centr);
+    if(i >= bandw || j >= l || i < 0 || j < 0) throw std::out_of_range("Out of range banded set");
  #endif
     values[i][j] = val;
   }
@@ -316,7 +314,8 @@ class banded_general{
     }
     auto tmp = banded_general<bandw, false>(len);
     for(int i = 0; i < bandw; i++){
-        for(int j = 0; j < len; j++){
+        const int l = len - std::abs(i-centr);
+        for(int j = 0; j < l; j++){
           tmp.set(i, j, get(i, j));
         }
     }
