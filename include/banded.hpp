@@ -163,7 +163,7 @@ class banded_general{
     }
   }
   void add_identity_factor(double factor){
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < values[centr].size(); i++){
         values[centr][i] += factor;
     }
   }
