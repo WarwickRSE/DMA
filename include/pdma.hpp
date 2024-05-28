@@ -128,8 +128,6 @@ bool verify_stored_array(T expected){
         }
     }
 
-    const int a=2, b=3, c=4, d=1, e=0;
-
     // Multiply them
     // Obtain a non-banded matrix in general. Best to check for absence of non-zeros off the band to be sure
     auto res = matmul(L, U);
@@ -165,10 +163,8 @@ std::vector<double> solve(const std::vector<double> rhs){
 
   double thresh = 1e-14;
 
-  int sz = len; // Avoid rename for now
-
 #ifdef DEBUG
-  assert(sz == rhs.size());
+  assert(len == rhs.size());
 #endif
 
   std::vector<double> rho, psi;
@@ -178,14 +174,14 @@ std::vector<double> solve(const std::vector<double> rhs){
   // Forward sweep
   rho[0] = rhs[0];
   rho[1] = rhs[1] - lu_values[z][1] * rho[0];
-  for(int i =2; i<sz; i++){
+  for(int i =2; i<len; i++){
     rho[i] = rhs[i] - lu_values[z][i] * rho[i-1] - lu_values[e_st][i]*rho[i-2];
   }
 
   // Reverse
-  psi[sz-1] = rho[sz-1]/lu_values[x][sz-1];
-  psi[sz-2] = (rho[sz-2] - lu_values[y][sz-2]*psi[sz-1])/lu_values[x][sz-2];
-  for(int i = sz-3; i > -1; i--){
+  psi[len-1] = rho[len-1]/lu_values[x][len-1];
+  psi[len-2] = (rho[len-2] - lu_values[y][len-2]*psi[len-1])/lu_values[x][len-2];
+  for(int i = len-3; i > -1; i--){
     psi[i] = (rho[i] - lu_values[y][i] * psi[i+1] - lu_values[c_st][i] * psi[i+2])/lu_values[x][i];
   }
 
