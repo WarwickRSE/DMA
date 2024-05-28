@@ -122,6 +122,23 @@ class banded_general{
         values[i].resize(l);
     }
   }
+  banded_general(const banded_general & other):len(other.len), hdr(other.hdr), ftr(other.ftr){
+    values = other.values;
+  }
+  banded_general & operator=(const banded_general & other){
+    // Types must be conformable - for non-repeating that means same len
+    // For repeating it means hdr and ftr same
+    if constexpr(repeating){
+      assert(hdr == other.hdr && ftr == other.ftr);
+    }else{
+      assert(len == other.len);
+    }
+    if(this != &other){
+      values = other.values;
+    }
+    return *this;
+  }
+
   void clear(){
     for(int i = 0; i < bandw; i++){
         for(double & value : values[i]){
