@@ -46,7 +46,7 @@ std::cout<<std::endl;
 
   // Try out the nudge resizing
   std::cout<<"Growing matrix \n";
-  int new_len = len - 3;
+  int new_len = len + 2;
   mat.change_len(new_len);
   mat.pretty_print();
   solver.nudge_array_len(mat);
