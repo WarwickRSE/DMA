@@ -208,7 +208,7 @@ class banded_general{
         if(off == 0){
           values[i][row] = 1.0;
         }
-        else if(off > 0 && row-off >= 0){
+        else if(off > 0 && row >= off){
             values[i][row-off] = 0.0;
         }else if(off < 0){
             values[i][row] = 0.0;
@@ -257,7 +257,7 @@ class banded_general{
   double get(size_t i, size_t j) const{
     // Get value in diagonal i, position j. j can run from 0 to len - l where l is the number of the diagonal
 #ifdef DEBUG
-    if(i >= bandw || j >= st_len(i) || i < 0 || j < 0) throw std::out_of_range("Out of range banded get");
+    if(i >= bandw || j >= st_len(i)) throw std::out_of_range("Out of range banded get");
 #endif
     if constexpr(repeating){
       return values[i][(j < hdr ? j :(j > len-ftr-1 ? (j-reps()+1) : hdr))];
@@ -284,7 +284,7 @@ class banded_general{
     index_helper inds;
     inds.i = j - i + centr;
     inds.j = (i < j ? i : j);
-    inds.valid = (inds.i >= 0 && inds.i < bandw && inds.j >= 0 && inds.j < st_len(inds.i));
+    inds.valid = (j+centr >= i && inds.i < bandw && inds.j < st_len(inds.i));
     return inds;
   }
 
@@ -305,7 +305,7 @@ class banded_general{
     }
     // Set value in diagonal i, position j
 #ifdef DEBUG
-    if(i >= bandw || j >= st_len(i) || i < 0 || j < 0) throw std::out_of_range("Out of range banded set");
+    if(i >= bandw || j >= st_len(i)) throw std::out_of_range("Out of range banded set");
  #endif
     values[i][j] = val;
   }
