@@ -314,7 +314,7 @@ class banded_general{
       static_assert(!repeating, "Cannot set values in repeating matrix");
     }
     // Set value at _real_ indices i, j
-    index_helper inds = index_from_real<bandw>(len, i, j);
+    index_helper inds = index_from_real(len, i, j);
     if(inds.valid){
       set(inds.i, inds.j, val);
     }else{
