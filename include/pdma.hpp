@@ -138,10 +138,12 @@ bool verify_stored_array(T expected){
     for(size_t i = 0; i<len; i++){
       for(size_t j = 0; j<len; j++){
         if(std::abs((long)(i - j)) < 3){
-          double diff = std::abs((res.get(i, j) - expected.get_real(i, j))/expected.get_real(i, j));
-          if(diff > zero_thresh && diff > max_err){
-            max_err = diff;
-            err = true;
+          if(expected.get_real(i,j) != 0.0){// Exact equality correct, just protecting from divide-by-zero
+            double diff = std::abs((res.get(i, j) - expected.get_real(i, j))/expected.get_real(i, j));
+            if(diff > zero_thresh && diff > max_err){
+              max_err = diff;
+              err = true;
+            }
           }
         }else{
           double val = std::abs(res.get(i, j));
