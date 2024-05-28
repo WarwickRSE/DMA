@@ -407,7 +407,7 @@ class banded_general{
 
 };
 
-general_mat matmul(const general_mat & L, const general_mat & U){
+inline general_mat matmul(const general_mat & L, const general_mat & U){
   assert(L.len == U.len);
   general_mat result(L.len);
   for(int i = 0; i < L.len; i++){
