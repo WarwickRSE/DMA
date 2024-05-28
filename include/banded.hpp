@@ -445,7 +445,7 @@ general_mat matmul(const banded_general<bandw, repeatinga> & L, const banded_gen
   for(int i = 0; i < L.len; i++){
     for(int j = 0; j < L.len; j++){
       double tmp = 0.0;
-      for(int k = i-centr; k < i+centr+1; k++){
+      for(int k = std::max(0, i-centr); k < std::min(i+centr+1, L.len); k++){
         tmp += L.get_real(i, k)*U.get_real(k, j);
       }
       result.set(i, j, tmp);
@@ -461,7 +461,7 @@ inline std::vector<double> matvecmult(const banded_general<bandw, repeating> & A
   std::vector<double> b(A.len);
   for(int i = 0; i < A.len; i++){
     double tmp = 0.0;
-    for(int j = i-centr; j < i + centr+1; j++){
+    for(int j = std::max(0, i-centr); j < std::min(i+centr+1, A.len); j++){
       tmp += A.get_real(i, j)*x[j];
     }
     b[i] = tmp;
