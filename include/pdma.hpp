@@ -94,7 +94,7 @@ class penta_thomas_solver{
 
 template < typename T >
 bool verify_stored_array(T expected){
-    banded_general_penta L(len), U(len), res(len);
+    banded_general_penta L(len), U(len);
 
     if(len != expected.len){
         std::cout<<"Canot verify, length incorrect\n";
@@ -125,38 +125,32 @@ bool verify_stored_array(T expected){
     const int a=2, b=3, c=4, d=1, e=0;
 
     // Multiply them
-    res.set(a, 0, L.get(a, 0)*U.get(a, 0));
-    res.set(a, 1, L.get(d, 0)*U.get(b, 0) + L.get(a, 1)*U.get(a, 1));
-
-    res.set(d, 0, L.get(d, 0)*U.get(a, 0));
-    res.set(b, 0, L.get(a, 0)*U.get(b, 0));
-
-    for(int i = 0; i < len; i++){
-        if(i > 1){
-          res.set(a, i, L.get(e, i-2)*U.get(c, i-2) + L.get(d, i-1)*U.get(b, i-1) + L.get(a, i)*U.get(a, i));
-        }
-        if(i > 0 && i < len-1){
-          res.set(b, i, L.get(d, i-1)*U.get(c, i-1) + L.get(a, i)*U.get(b, i));
-          res.set(d, i, L.get(e, i-1)*U.get(b, i-1) + L.get(d, i)*U.get(a, i));
-        }
-        if(i < len-2){
-          res.set(c, i, L.get(a, i)*U.get(c, i));
-          res.set(e, i, L.get(e, i)*U.get(a, i));
-        }
-    }
+    // Obtain a non-banded matrix in general. Best to check for absence of non-zeros off the band to be sure
+    auto res = matmul(L, U);
 
     bool err = false;
     double max_err = 0.0;
-    for(int i = 0; i < 5; i++){
-        int l = res.len - std::abs(i-2);
-        for(int j = 0; j< l; j++){
-            double diff = std::abs((res.get(i, j) - expected.get(i, j))/expected.get(i, j));
-            if(diff > max_err) max_err = diff;
-            if(diff > zero_thresh)err = true;
+    double non_zero_err = 0.0;
+    for(int i = 0; i<len; i++){
+      for(int j = 0; j<len; j++){
+        if( std::abs(i-j) < 3){
+          double diff = std::abs((res.get(i, j) - expected.get_real(i, j))/expected.get_real(i, j));
+          if(diff > zero_thresh && diff > max_err){
+            max_err = diff;
+            err = true;
+          }
+        }else{
+          double val = std::abs(res.get(i, j));
+          if(val > zero_thresh && val > non_zero_err){
+            non_zero_err = val;
+            err = true;
+          }
         }
+      }
     }
     if(err) res.print();
-    std::cout<<"Max error: "<<max_err<<std::endl;
+    std::cout<<"Max diff from expected: "<<max_err<<std::endl;
+    std::cout<<"Max val of element which should be zero: "<<non_zero_err<<std::endl;
     assert(!err);
     return err;
 }
