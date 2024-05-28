@@ -9,6 +9,12 @@
 const double zero_thresh = 1e-14;
 
 class penta_thomas_solver{
+/**
+ * @brief Solves A x = b where A is a penta-diagonal matrix
+ * 
+ * Optimised for the case where matrix is small enough to hold 5xN elements in memory, and where it either does not change size, or changes slowly, as re-calculation is minimised.
+ * 
+ */
 
   std::vector<std::vector<double> > lu_values;
   int len;
@@ -45,7 +51,7 @@ class penta_thomas_solver{
     // Renumber for simpler maths
     for(int i = 0; i < len-2; i++){
         lu_values[c_st][i] = new_arr.get(c, i);
-        lu_values[e_st][i+2] = new_arr.get(e, i);
+        lu_values[e_st][i+2] = new_arr.get(e, i)/lu_values[x][i];
     }
 
 #ifdef DEBUG
@@ -87,7 +93,7 @@ class penta_thomas_solver{
     // Renumber for simpler maths
     for(int i = start_of_recalc; i < len-2; i++){
         lu_values[c_st][i] = new_arr.get(c, i);
-        lu_values[e_st][i+2] = new_arr.get(e, i);
+        lu_values[e_st][i+2] = new_arr.get(e, i)/lu_values[x][i];
     }
 
   }
@@ -108,7 +114,7 @@ bool verify_stored_array(T expected){
           L.set(1, i, lu_values[z][i+1]);
         }
         if(i < len-2){
-          L.set(0, i, lu_values[e_st][i+2]/ lu_values[x][i]);
+          L.set(0, i, lu_values[e_st][i+2]);
         }
     }
 
@@ -173,7 +179,7 @@ std::vector<double> solve(const std::vector<double> rhs){
   rho[0] = rhs[0];
   rho[1] = rhs[1] - lu_values[z][1] * rho[0];
   for(int i =2; i<sz; i++){
-    rho[i] = rhs[i] - lu_values[z][i] * rho[i-1] - lu_values[e_st][i]*rho[i-2]/lu_values[x][i-2];
+    rho[i] = rhs[i] - lu_values[z][i] * rho[i-1] - lu_values[e_st][i]*rho[i-2];
   }
 
   // Reverse
