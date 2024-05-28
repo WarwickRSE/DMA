@@ -422,6 +422,20 @@ inline general_mat matmul(const general_mat & L, const general_mat & U){
   return result;
 }
 
+inline std::vector<double> matvecmult(const general_mat & A, std::vector<double> & x){
+  // Calculate A x for matrix A and vector x
+  assert(A.len == x.size());
+  std::vector<double> b(A.len);
+  for(int i = 0; i < A.len; i++){
+    double tmp = 0.0;
+    for(int j = 0; j < A.len; j++){
+      tmp += A.get(i, j)*x[j];
+    }
+    b[i] = tmp;
+  }
+  return b;
+}
+
 template <int bandw, bool repeatinga, bool repeatingb>
 general_mat matmul(const banded_general<bandw, repeatinga> & L, const banded_general<bandw, repeatingb> & U){
   // Multiply two banded matrices. Note that in general the result is NOT banded, so only a general matrix is returned
@@ -438,6 +452,21 @@ general_mat matmul(const banded_general<bandw, repeatinga> & L, const banded_gen
     }
   }
   return result;
+}
+template <int bandw, bool repeating>
+inline std::vector<double> matvecmult(const banded_general<bandw, repeating> & A, std::vector<double> & x){
+  // Calculate A x for matrix A and vector x
+  assert(A.len == x.size());
+  const int centr = (bandw + 1)/2 - 1; // -1 for 0-indexing
+  std::vector<double> b(A.len);
+  for(int i = 0; i < A.len; i++){
+    double tmp = 0.0;
+    for(int j = i-centr; j < i + centr+1; j++){
+      tmp += A.get_real(i, j)*x[j];
+    }
+    b[i] = tmp;
+  }
+  return b;
 }
 
 template <int bandw>
