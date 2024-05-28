@@ -84,6 +84,9 @@ class general_mat{
       }
       return true;
     }
+    const bool operator!=(const general_mat & other) const{
+      return !(*this == other);
+    }
 };
 
 template <int bandw, bool repeating=false>
@@ -360,6 +363,9 @@ class banded_general{
     }
     return true;
   }
+  friend bool operator!=(const banded_general & lhs, const banded_general & rhs){
+    return !(lhs == rhs);
+  }
   //Comparisons with other value for repeating...
   friend bool operator==(const banded_general<bandw, repeating> & lhs,  const banded_general<bandw, !repeating> & rhs){
     // Check for equality without repeats
@@ -373,6 +379,9 @@ class banded_general{
       }
     }
     return true;
+  }
+  friend bool operator!=(const banded_general<bandw, repeating> & lhs,  const banded_general<bandw, !repeating> & rhs){
+    return !(lhs == rhs);
   }
 
   //Equality with full matrices
@@ -388,6 +397,12 @@ class banded_general{
   }
   friend bool operator==(const banded_general & banded, const general_mat & gen){
     return gen == banded;
+  }
+  friend bool operator!=(const general_mat & gen, const banded_general & banded){
+    return !(gen == banded);
+  }
+  friend bool operator!=(const banded_general & banded, const general_mat & gen){
+    return !(gen == banded);
   }
 
 };
