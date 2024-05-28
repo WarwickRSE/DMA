@@ -111,8 +111,8 @@ class banded_general{
   // Checks
 #ifdef DEBUG
     static_assert(bandw % 2 == 1); // Bandwidth has to be odd (main diag plus 2*off-diag)
-    assert(len > bandw); // Doesn't make any sense otherwise...
-    assert(!repeating || len > hdr+ftr+1); // Must have at least one repeating row if repeating
+    assert(len >= bandw); // Doesn't make any sense otherwise...
+    assert(!repeating || len >= hdr+ftr+1); // Must have at least one repeating row if repeating
 #endif 
 
     values.resize(bandw);
@@ -157,8 +157,8 @@ class banded_general{
       static_assert(repeating, "Cannot change length of non-repeating matrix");
     }
 #ifdef DEBUG
-    assert(new_len > hdr+ftr+1); // Must have at least one repeating row
-    assert(new_len > bandw); // Doesn't make any sense otherwise...
+    assert(new_len >= hdr+ftr+1); // Must have at least one repeating row
+    assert(new_len >= bandw); // Doesn't make any sense otherwise...
 #endif
     len = new_len;
   }
