@@ -101,7 +101,7 @@ int main(){
     auto mat_repeating_2 = matmul(mat_repeating, mat_repeating);
     mat_repeating_2.print();
     std::cout<<"______________________\n";
-    auto mat_expanded_2 = matmul(mat_repeating_expanded, mat_repeating_expanded);
+    auto mat_expanded_2 = matmul(mat_repeating_general, mat_repeating_general);
     mat_expanded_2.print();
     std::cout<<"Results equal? "<<(mat_repeating_2 == mat_expanded_2)<<std::endl;
 
