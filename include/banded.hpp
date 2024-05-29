@@ -15,6 +15,7 @@
 namespace elementary_matrices{
 
     // Values. Bandwidth is (sz*2 -1); Simplify by not nesting...
+    const std::vector<double> TriSpring{-1, 2, -1};
     const std::vector<double> Spring{-1, 2, -1,   2, -4, 2,   -1, 2, -1};
     const std::vector<double> SpringBanded{-1, 2, -1, 2, -1,  2, -4, 2,  -1};
 };
@@ -481,5 +482,7 @@ banded_general<bandw, false> from_general(const general_mat & gen){
 
 using banded_general_penta = banded_general<5, false>;
 using penta_repeating = banded_general<5, true>;
+using banded_general_tri = banded_general<3, false>;
+using tri_repeating = banded_general<3, true>;
 
 #endif
