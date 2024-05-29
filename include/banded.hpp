@@ -167,6 +167,16 @@ class banded_general{
   void fill_from_otherstuff(){ //TODO
   };
 
+  void fill_unique(){
+    // Fill every element with a unique value, for testing
+    // Chuck some primes in, for variety
+    auto primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29};
+    for(size_t i = 0; i < bandw; i++){
+        for(size_t j = 0; j < values[i].size(); j++){
+            values[i][j] = i* (*primes.begin()+i) + j * (*primes.begin()+ (j%10));
+        }
+    }
+  }
 
   void fill_from_elemBanded(const std::vector<double> elem){
     // ADDS the elementary banded array contributions
