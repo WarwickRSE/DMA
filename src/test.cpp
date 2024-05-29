@@ -8,8 +8,11 @@ const int len = 200;
 
 timer mytimer;
 
-//banded_general_penta mat(len);
+#ifdef REPEAT
 penta_repeating mat(len, 2, 2);
+#else
+banded_general_penta mat(len);
+#endif
 
 mat.fill_from_elemBanded(elementary_matrices::SpringBanded);
 mat.add_identity_factor(0.1);
@@ -52,6 +55,8 @@ for(int t = 0; t<n_iter;t++){
     std::cout<<"Iteration "<<t<<", error "<<max_err<<std::endl;
 }
 
+#ifdef REPEAT
+  {
   // Try out the nudge resizing
   std::cout<<"Growing matrix \n";
   int new_len = len + 2;
@@ -75,6 +80,12 @@ for(int t = 0; t<n_iter;t++){
   }
   // Check ABSOLUTE error
   std::cout<<"Resized array, error "<<max_err<<std::endl;
+  }
+#endif
+
+{
+  int new_len = mat.len;
+  double max_err = 0.0;
 
   const int timer_iters = 10000;
 
@@ -96,7 +107,7 @@ for(int t = 0; t<n_iter;t++){
 
   sol = onthefly_solver.solve(mat, rhs);
 
-  b = matvecmult(mat, sol);
+  auto b = matvecmult(mat, sol);
   max_err = 0.0;
   for(int i=0; i<new_len; i++){
     if(std::abs(b[i] - rhs[i]) > max_err){
@@ -113,5 +124,5 @@ for(int t = 0; t<n_iter;t++){
   mytimer.print_current_time();
 
   std::cout<<"Relative time for cached values "<<(double)time1/mytimer.get_current_time()*100<<"%"<<std::endl;
-
+}
 }
