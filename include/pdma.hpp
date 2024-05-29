@@ -100,7 +100,7 @@ class penta_thomas_solver{
   }
 
 template < typename T >
-bool verify_stored_array(T expected){
+bool verify_stored_array(T& expected){
     banded_general_penta L(len), U(len);
 
     if(len != expected.len){
@@ -162,7 +162,7 @@ bool verify_stored_array(T expected){
     return err;
 }
 
-std::vector<double> solve(const std::vector<double> rhs){
+std::vector<double> solve(const std::vector<double> & rhs)const{
 
 #ifdef DEBUG
   assert(len == rhs.size());
