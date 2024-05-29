@@ -59,13 +59,13 @@ for(int t = 0; t<n_iter;t++){
   if(err) std::cout<<"Problem in decomposition "<<std::endl;
 
   rhs.resize(new_len);
-  for(int i=1; i<len; i++){
+  for(int i=1; i<new_len; i++){
     rhs[i] =  rhs[i-1] + 0.01; // Same original rhs
   }
   sol = solver.solve(rhs);
   auto b = matvecmult(mat, sol);
   double max_err = 0.0;
-  for(int i=0; i<len; i++){
+  for(int i=0; i<new_len; i++){
     if(std::abs(b[i] - rhs[i]) > max_err){
       max_err = std::abs(b[i] - rhs[i]);
     }
