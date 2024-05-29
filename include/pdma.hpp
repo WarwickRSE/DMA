@@ -12,7 +12,7 @@ class penta_thomas_solver{
 /**
  * @brief Solves A x = b where A is a penta-diagonal matrix
  * 
- * Optimised for the case where matrix is small enough to hold 5xN elements in memory, and where it either does not change size, or changes slowly, as re-calculation is minimised.
+ * Optimised for the case where matrix is small enough to hold 5xN elements in memory, and where it either does not change size, or changes slowly, as re-calculation is minimised; and where a large number of solves are done for a given matrix. C.f. penta_thomas_onthefly for case where calculation on the fly is superior.
  * 
  */
 
@@ -66,6 +66,7 @@ class penta_thomas_solver{
     // Short-cuts certain logic for faster update on resize, esp growing/shrinking by amount << len
     // Only recalculates the last ftr + delta_len rows (for growth) or ftr + 1 for shrinkage
     // MAY cause memory re-alocation internally, especially on growing
+    // Only really useful for a repeating type matrix, because otherwise where do the new values come from?
 
     size_t old_len = len;
     len = new_arr.len;
@@ -189,4 +190,67 @@ std::vector<double> solve(const std::vector<double> rhs){
 }
 
 };
+
+class penta_thomas_onthefly{
+/**
+ * @brief Solves A x = b where A is a penta-diagonal matrix
+ * 
+ * Solves the system on the fly, without storing intermediate values. This is useful when the matrix is large and the solves are infrequent, or when the matrix changes size frequently, so that storing intermediate values is not efficient 
+ */
+
+  public:
+
+  template < typename T >
+  std::vector<double> solve(const T & A, const std::vector<double> & rhs)const{
+
+    const int x=0, y=1, z=2;
+    const int a=2, b=3, c=4, d=1, e=0;
+ 
+    auto len = A.len;
+#ifdef DEBUG
+  assert(len == rhs.size());
+#endif
+
+    //Calculate the coefficients from the matrix
+    std::vector< std::vector<double > > lu_values;
+    lu_values.resize(3); // x, y, z
+    for(int i = 0; i<3; i++) lu_values[i].resize(len);
+
+    // Initial values
+    lu_values[x][0] = A.get(a, 0);
+    lu_values[y][0] = A.get(b, 0);
+    lu_values[z][1] = A.get(d, 0) / lu_values[x][0];
+    lu_values[y][1] = A.get(b, 1) - lu_values[z][1] * A.get(c,0);
+    lu_values[x][1] = A.get(a, 1) - lu_values[y][0] * lu_values[z][1];
+
+    for(size_t i = 2; i < len; i++){
+        lu_values[z][i] = ( A.get(d,i-1) - (A.get(e, i-2) * lu_values[y][i-2]/lu_values[x][i-2]))/lu_values[x][i-1];
+        if(i < len-1){
+          lu_values[y][i] = A.get(b, i) -  lu_values[z][i]* A.get(c, i-1);
+        }
+        lu_values[x][i] = A.get(a, i) - (lu_values[y][i-1] * lu_values[z][i]) - (A.get(e, i-2) * A.get(c, i-2)/lu_values[x][i-2]);
+    }
+
+    std::vector<double> rho, psi;
+    rho.resize(len);
+    psi.resize(len);
+
+    // Forward sweep
+    rho[0] = rhs[0];
+    rho[1] = rhs[1] - lu_values[z][1] * rho[0];
+    for(size_t i =2; i<len; i++){
+      rho[i] = rhs[i] - lu_values[z][i] * rho[i-1] - A.get(e, i-2)/lu_values[x][i-2]*rho[i-2];
+    }
+
+    // Reverse
+    psi[len-1] = rho[len-1]/lu_values[x][len-1];
+    psi[len-2] = (rho[len-2] - lu_values[y][len-2]*psi[len-1])/lu_values[x][len-2];
+    for(long i = len-3; i > -1; i--){
+      psi[i] = (rho[i] - lu_values[y][i] * psi[i+1] - A.get(c, i) * psi[i+2])/lu_values[x][i];
+    }
+
+    return psi;
+  }
+};
+
 #endif

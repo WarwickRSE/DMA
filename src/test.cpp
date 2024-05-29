@@ -1,9 +1,12 @@
+#include "timer.hpp"
 #include "banded.hpp"
 #include "pdma.hpp"
 
 int main(){
 
-const int len = 8;
+const int len = 200;
+
+timer mytimer;
 
 //banded_general_penta mat(len);
 penta_repeating mat(len, 2, 2);
@@ -72,5 +75,43 @@ for(int t = 0; t<n_iter;t++){
   }
   // Check ABSOLUTE error
   std::cout<<"Resized array, error "<<max_err<<std::endl;
+
+  const int timer_iters = 10000;
+
+  mytimer.begin();
+  for(int i = 0; i<timer_iters; i++){
+    sol = solver.solve(rhs);
+  }
+  mytimer.pause();
+  mytimer.print_current_time();
+  long time1 = mytimer.get_current_time();
+
+  // Solving on the fly now
+
+  penta_thomas_onthefly onthefly_solver;
+
+  for(int i=1; i<new_len; i++){
+    rhs[i] =  rhs[i-1] + 0.01; // Same original rhs
+  }
+
+  sol = onthefly_solver.solve(mat, rhs);
+
+  b = matvecmult(mat, sol);
+  max_err = 0.0;
+  for(int i=0; i<new_len; i++){
+    if(std::abs(b[i] - rhs[i]) > max_err){
+      max_err = std::abs(b[i] - rhs[i]);
+    }
+  }
+  // Check ABSOLUTE error
+  std::cout<<"Solved on-the-fly, error "<<max_err<<std::endl;
+  mytimer.begin();
+  for(int i = 0; i<timer_iters; i++){
+    sol = onthefly_solver.solve(mat, rhs);
+  }
+  mytimer.pause();
+  mytimer.print_current_time();
+
+  std::cout<<"Relative time for cached values "<<(double)time1/mytimer.get_current_time()*100<<"%"<<std::endl;
 
 }
