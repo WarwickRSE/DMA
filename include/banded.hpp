@@ -219,7 +219,7 @@ class banded_general{
         if(off == 0){
           values[i][row] = 1.0;
         }
-        else if(off > 0 && row >= off){
+        else if(off > 0 && (long)row >= off){
             values[i][row-off] = 0.0;
         }else if(off < 0){
             values[i][row] = 0.0;
