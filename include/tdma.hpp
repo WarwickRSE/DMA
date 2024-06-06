@@ -18,8 +18,8 @@ class thomas_solver{
 
   std::vector<std::vector<double> > lu_values;
   size_t len;
-  const int w=0, b_st=1, c_st=2;
-  const int a=0, b=1, c=2;
+  static const int w=0, b_st=1, c_st=2;
+  static const int a=0, b=1, c=2;
   public:
 
   // Update stored values for a new array

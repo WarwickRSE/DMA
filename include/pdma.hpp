@@ -18,8 +18,8 @@ class penta_thomas_solver{
 
   std::vector<std::vector<double> > lu_values;
   size_t len;
-  const int x=0, y=1, z=2, c_st=3, e_st=4;
-  const int a=2, b=3, c=4, d=1, e=0;
+  static const int x=0, y=1, z=2, c_st=3, e_st=4;
+  static const int a=2, b=3, c=4, d=1, e=0;
   public:
 
   // Update stored values for a new array
