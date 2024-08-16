@@ -100,11 +100,11 @@ class penta_thomas_solver{
   }
 
 template < typename T >
-bool verify_stored_array(T& expected){
+bool verify_stored_array(T& expected, bool to_cout=true){
     banded_general_penta L(len), U(len);
 
     if(len != expected.len){
-        std::cout<<"Canot verify, length incorrect\n";
+        if(to_cout) std::cout<<"Canot verify, length incorrect\n";
         return true;
     }
 
@@ -155,9 +155,11 @@ bool verify_stored_array(T& expected){
         }
       }
     }
-    if(err) res.print();
-    std::cout<<"Max diff from expected: "<<max_err<<std::endl;
-    std::cout<<"Max val of element which should be zero: "<<non_zero_err<<std::endl;
+    if(to_cout){
+      if(err) res.print();
+      std::cout<<"Max diff from expected: "<<max_err<<std::endl;
+      std::cout<<"Max val of element which should be zero: "<<non_zero_err<<std::endl;
+    }
     assert(!err);
     return err;
 }
