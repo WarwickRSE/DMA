@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "PentaDiagonal Matrix Inversion"
+version: 1.0.0
+license: "BSD"
+type: software
+abstract: "Example of a fast PentaDiagonal matrix inversion"
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: Heather
+    family-names: Ratcliffe
+    affiliation: University of Warwick
+    orcid: "https://orcid.org/0000-0003-3432-7290"
+keywords:
+  - polymer simulation
+  - numerical methods
+  - linear algebra
