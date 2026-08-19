@@ -11,3 +11,5 @@ Thomas algorithm for Tridiagonal matrices: https://en.wikipedia.org/wiki/Tridiag
 
 L.U decomposition for a PentaDiagonal matrix: https://doi.org/10.1016/j.amc.2008.03.004
 (Theorem 2.1 and Remark 2.5) used to create the equivalent algorithm
+
+[![DOI](https://zenodo.org/badge/805522328.svg)](https://doi.org/10.5281/zenodo.22011711)
